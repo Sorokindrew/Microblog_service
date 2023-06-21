@@ -44,7 +44,7 @@ class Me(Resource):
         Endpoint to get user info.
         ---
         tags:
-          - me
+          - users
         responses:
           200:
             description: User data
@@ -54,6 +54,17 @@ class Me(Resource):
             info = user.get_info()
             info['following'] = []
             return jsonify(result='true', user=info)
+
+
+@api.route('/api/users/<id>')
+class User(Resource):
+    def get(self):
+        """
+        Endpoint to get info about user by Id.
+        ---
+        tags:
+          - users
+        """
 
 
 @api.route('/api/tweets')
@@ -83,6 +94,86 @@ class TweetsList(Resource):
                 }
             ]
         }
+
+    def post(self):
+        """
+        Endpoint to send new tweet.
+        ---
+        tags:
+         - tweets
+        responses:
+         200:
+           description: Tweets data
+        """
+        pass
+
+
+@api.route('/api/medias')
+class Media(Resource):
+    def get(self):
+        """
+        Endpoint to get medias from tweet.
+        ---
+        tags:
+          - medias
+        """
+        pass
+
+@api.route('/api/tweets/<id>')
+class DeleteTweet(Resource):
+    def delete(self):
+        """
+        Endpoint to delete the tweet.
+        ---
+        tags:
+         - tweets
+        responses:
+         200:
+           description: Tweets data
+        """
+        pass
+
+
+@api.route('/api/tweets/<id>/likes')
+class Likes(Resource):
+    def post(self):
+        """
+        Endpoint to add like.
+        ---
+        tags:
+          - likes
+        """
+        pass
+
+    def delete(self):
+        """
+        Endpoint to delete like.
+        ---
+        tags:
+          - likes
+        """
+        pass
+
+
+@api.route('/api/users/<id>/follow')
+class Following(Resource):
+    def post(self):
+        """
+        Endpoint to follow user.
+        ---
+        tags:
+          - users
+        """
+        pass
+
+    def delete(self):
+        """
+        Endpoint to delete following user.
+        ---
+        tags:
+          - users
+        """
+        pass
 
 
 template = spec.to_flasgger(
