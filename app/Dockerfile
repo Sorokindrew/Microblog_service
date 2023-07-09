@@ -12,7 +12,6 @@ COPY nginx.conf /etc/nginx/nginx.conf
 COPY uwsgi.ini /etc/uwsgi/uwsgi.ini
 COPY supervisord.ini /etc/supervisor/conf.d/supervisord.ini
 
-
 WORKDIR /app
 
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.ini"]

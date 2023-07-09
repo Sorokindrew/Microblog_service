@@ -1,8 +1,16 @@
 from sqlalchemy import Column, Sequence, String, JSON, ARRAY, \
-    Integer, ForeignKey
+    Integer, ForeignKey, Table
 from sqlalchemy.orm import relationship
+from sqlalchemy.ext.declarative import declarative_base
 
-from database import Base
+Base = declarative_base()
+
+user_to_user = Table(
+    "user_follows",
+    Base.metadata,
+    Column("followers_id", Integer, ForeignKey("users.id"), primary_key=True),
+    Column("following_id", Integer, ForeignKey("users.id"), primary_key=True),
+)
 
 
 class User(Base):
@@ -14,13 +22,46 @@ class User(Base):
                 nullable=False)
     name = Column(String(200), nullable=False)
     api_key = Column(String(200), nullable=False)
-    followers = Column(ARRAY(Integer))
-    tweets = Column(ARRAY(Integer))
 
-    def get_info(self):
+    followers = relationship(
+        "User",
+        secondary=user_to_user,
+        primaryjoin=id == user_to_user.c.following_id,
+        secondaryjoin=id == user_to_user.c.followers_id,
+        back_populates="following",
+    )
+    following = relationship(
+        "User",
+        secondary=user_to_user,
+        primaryjoin=id == user_to_user.c.followers_id,
+        secondaryjoin=id == user_to_user.c.following_id,
+        back_populates="followers",
+    )
+
+    def get_user_id_and_name(self):
+        return {"id": self.id,
+                "name": self.name
+                }
+
+    def get_user_full_info(self):
+        info_about_followers = []
+        info_about_following = []
+        for follower in self.followers:
+            follower_data = {
+                'id': follower.id,
+                'name': follower.name
+            }
+            info_about_followers.append(follower_data)
+        for following in self.following:
+            following_data = {
+                'id': following.id,
+                'name': following.name
+            }
+            info_about_following.append(following_data)
         return {"id": self.id,
                 "name": self.name,
-                "followers": self.followers,
+                "followers": info_about_followers,
+                "following": info_about_following
                 }
 
 
@@ -32,19 +73,13 @@ class Tweet(Base):
                 primary_key=True,
                 nullable=False)
     user_id = Column(Integer, ForeignKey('users.id'))
-    tweet_data = Column(String(200), default='')
-    tweet_media_ids = Column(ARRAY(Integer))
+    content = Column(String(200), default='')
+    attachments = Column(ARRAY(Integer))
 
-    # user = relationship('User', backref='tweets')
-
-    def get_info(self):
-        return {'user': self.user.name,
-                'tweet_data': self.tweet_data,
-                'tweet_media_ids': self.tweet_media_ids
-                }
+    user = relationship('User', backref='tweets')
 
 
-class Likes(Base):
+class Like(Base):
     __tablename__ = 'likes'
 
     id = Column(Integer,
@@ -61,3 +96,4 @@ class Image(Base):
     __tablename__ = 'images'
 
     id = Column(Integer, primary_key=True)
+    name = Column(String(200), nullable=False)

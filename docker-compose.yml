@@ -6,6 +6,8 @@ services:
     stop_signal: SIGKILL
     ports:
       - '80:80'
+    volumes:
+      - ./app/static/images/:/usr/share/nginx/html/images
     depends_on:
       - postgres
 
