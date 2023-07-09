@@ -7,7 +7,7 @@ from apispec_webframeworks.flask import FlaskPlugin
 from apispec.ext.marshmallow import MarshmallowPlugin
 
 from database import session, engine, init_db, get_user_by_id, \
-    get_logged_user, get_all_tweets
+    get_logged_user, get_all_tweets, add_like, add_tweet
 import models
 from schemas import TweetSchema, UserSchema
 
@@ -84,20 +84,10 @@ class TweetsList(Resource):
          200:
            description: Tweets data
         """
-
-        data = request.get_data(as_text=True)
-        user_api_key = request.headers['Api-Key']
-        user_posted_tweet = session.query(models.User).filter(
-            models.User.api_key == user_api_key).one()
-        tweet_data = json.loads(data)
-        tweet_to_add = models.Tweet(user_id=user_posted_tweet.id,
-                                    content=tweet_data['tweet_data'],
-                                    attachments=tweet_data['tweet_media_ids'])
-        session.add(tweet_to_add)
-        session.flush()
-        session.commit()
+        user_posted_tweet = get_logged_user(request)
+        tweet_id = add_tweet(request=request, user_id=user_posted_tweet.id)
         return {"result": "true",
-                "tweet_id": tweet_to_add.id}
+                "tweet_id": tweet_id}
 
 
 @api.route('/api/medias')
@@ -146,12 +136,8 @@ class Likes(Resource):
         tags:
           - likes
         """
-        user_api_key = request.headers['Api-Key']
-        user_liked_tweet = session.query(models.User).filter(
-            models.User.api_key == user_api_key).one()
-        like_to_add = models.Like(tweet_id=id, user_id=user_liked_tweet.id)
-        session.add(like_to_add)
-        session.commit()
+        user_liked_tweet = get_logged_user(request)
+        add_like(tweet_id=id, user_id=user_liked_tweet.id)
         return jsonify(result='true')
 
     def delete(self):
@@ -161,9 +147,7 @@ class Likes(Resource):
         tags:
           - likes
         """
-        user_api_key = request.headers['Api-Key']
-        user_liked_tweet = session.query(models.User).filter(
-            models.User.api_key == user_api_key).one()
+        pass
 
 
 @api.route('/api/users/<id>/follow')
