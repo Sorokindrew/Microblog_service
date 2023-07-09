@@ -1,3 +1,4 @@
+import json
 from typing import List
 
 import flask
@@ -67,3 +68,27 @@ def get_all_tweets() -> List:
             "likes": tweet_likes
         })
     return tweets_list
+
+
+def add_tweet(request: Request, user_id):
+    data = request.get_data(as_text=True)
+    tweet_data = json.loads(data)
+    tweet_to_add = Tweet(user_id=user_id,
+                         content=tweet_data['tweet_data'],
+                         attachments=tweet_data['tweet_media_ids'])
+    session.add(tweet_to_add)
+    session.flush()
+    session.commit()
+    return tweet_to_add.id
+
+
+def add_like(tweet_id, user_id):
+    if session.query(Like).filter(Like.tweet_id == tweet_id,
+                                  Like.user_id == user_id).first() is None:
+        like_to_add = Like(tweet_id=tweet_id, user_id=user_id)
+        session.add(like_to_add)
+        session.commit()
+    else:
+        session.query(Like).filter(Like.tweet_id == tweet_id,
+                                   Like.user_id == user_id).delete()
+        session.commit()
