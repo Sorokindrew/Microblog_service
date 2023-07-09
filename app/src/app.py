@@ -7,7 +7,8 @@ from apispec_webframeworks.flask import FlaskPlugin
 from apispec.ext.marshmallow import MarshmallowPlugin
 
 from database import session, engine, init_db, get_user_by_id, \
-    get_logged_user, get_all_tweets, add_like, add_tweet
+    get_logged_user, get_all_tweets, add_like, add_tweet, unfollow_user, \
+    delete_tweet, add_image
 import models
 from schemas import TweetSchema, UserSchema
 
@@ -99,22 +100,17 @@ class Media(Resource):
         tags:
           - medias
         """
-        file = request.files['file']
-        number = len(session.query(models.Image).all()) + 1
-        with open(f'/usr/share/nginx/html/images/{number}.png', 'wb') as f:
-            f.write(file.read())
-        image = models.Image(name=f'{number}.png')
-        session.add(image)
-        session.commit()
+        id_of_added_image = add_image(request=request)
+
         return {
             "result": "true",
-            "media_id": number
+            "media_id": id_of_added_image
         }
 
 
 @api.route('/api/tweets/<id>')
 class DeleteTweet(Resource):
-    def delete(self):
+    def delete(self, id):
         """
         Endpoint to delete the tweet.
         ---
@@ -124,7 +120,26 @@ class DeleteTweet(Resource):
          200:
            description: Tweets data
         """
-        pass
+        user = get_logged_user(request=request)
+        delete_tweet(tweet_id=id, user_id=user.id)
+        return jsonify(result='true')
+
+
+@api.route('/api/tweets/<id>/follow')
+class Following(Resource):
+    def delete(self, id):
+        """
+        Endpoint to delete the tweet.
+        ---
+        tags:
+         - users
+        responses:
+         200:
+           description: Tweets data
+        """
+        active_user = get_logged_user(request=request)
+        unfollow_user(user_to_be_unfollowed=id, user_id=active_user.id)
+        return jsonify(result='true')
 
 
 @api.route('/api/tweets/<id>/likes')
@@ -161,14 +176,16 @@ class Following(Resource):
         """
         pass
 
-    def delete(self):
+    def delete(self, id):
         """
         Endpoint to delete following user.
         ---
         tags:
           - users
         """
-        pass
+        active_user = get_logged_user(request=request)
+        unfollow_user(user_to_be_unfollowed=id, user_id=active_user.id)
+        return jsonify(result='true')
 
 
 template = spec.to_flasgger(
