@@ -1,3 +1,4 @@
+import json
 from typing import List
 
 import flask
@@ -67,3 +68,57 @@ def get_all_tweets() -> List:
             "likes": tweet_likes
         })
     return tweets_list
+
+
+def add_tweet(request: Request, user_id):
+    data = request.get_data(as_text=True)
+    tweet_data = json.loads(data)
+    tweet_to_add = Tweet(user_id=user_id,
+                         content=tweet_data['tweet_data'],
+                         attachments=tweet_data['tweet_media_ids'])
+    session.add(tweet_to_add)
+    session.flush()
+    session.commit()
+    return tweet_to_add.id
+
+
+def delete_tweet(tweet_id, user_id):
+    tweet_to_delete = session.query(Tweet).filter(Tweet.id == tweet_id).one()
+    if tweet_to_delete.user_id == user_id:
+        session.query(Tweet).filter(Tweet.id == tweet_id).delete()
+
+
+def add_like(tweet_id, user_id):
+    if session.query(Like).filter(Like.tweet_id == tweet_id,
+                                  Like.user_id == user_id).first() is None:
+        like_to_add = Like(tweet_id=tweet_id, user_id=user_id)
+        session.add(like_to_add)
+        session.commit()
+    else:
+        session.query(Like).filter(Like.tweet_id == tweet_id,
+                                   Like.user_id == user_id).delete()
+        session.commit()
+
+
+def unfollow_user(user_to_be_unfollowed, user_id):
+    following = session.query(User).filter(
+        User.id == user_to_be_unfollowed).one()
+    follower = session.query(User).filter(
+        User.id == user_id).one()
+    if follower in following.followers:
+        print('True')
+        following.followers.remove(follower)
+    else:
+        following.followers.append(follower)
+    session.commit()
+
+
+def add_image(request: Request):
+    file = request.files['file']
+    number = len(session.query(Image).all()) + 1
+    with open(f'/usr/share/nginx/html/images/{number}.png', 'wb') as f:
+        f.write(file.read())
+    image = Image(name=f'{number}.png')
+    session.add(image)
+    session.commit()
+    return image.id

@@ -8,6 +8,7 @@ services:
       - '80:80'
     volumes:
       - ./app/static/images/:/usr/share/nginx/html/images
+      - ./logs/:/app/logs/
     depends_on:
       - postgres
 
