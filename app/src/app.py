@@ -5,6 +5,7 @@ from flasgger import APISpec, Swagger
 from flask_restx import Api, Resource
 from apispec_webframeworks.flask import FlaskPlugin
 from apispec.ext.marshmallow import MarshmallowPlugin
+from loguru import logger
 
 from database import session, engine, init_db, get_user_by_id, \
     get_logged_user, get_all_tweets, add_like, add_tweet, unfollow_user, \
@@ -14,6 +15,8 @@ from schemas import TweetSchema, UserSchema
 
 application = Flask(__name__)
 api = Api(application)
+
+logger.add("./logs/log.log", level="DEBUG")
 
 spec = APISpec(
     title='UserList',
@@ -27,6 +30,7 @@ spec = APISpec(
 
 with application.app_context():
     init_db()
+    logger.info("DB created!")
 
 
 @api.route('/api/users/me')
@@ -41,6 +45,7 @@ class Me(Resource):
           200:
             description: User data
         """
+        logger.info("Info about me!")
         user = get_logged_user(request)
         return jsonify(result='true', user=user.get_user_full_info())
 
