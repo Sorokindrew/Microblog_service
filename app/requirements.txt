@@ -8,3 +8,5 @@ flasgger==0.9.7.1
 apispec-webframeworks==0.5.2
 marshmallow==3.19.0
 loguru==0.7.0
+Faker==18.13.0
+

@@ -7,25 +7,27 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from models import User, Tweet, Like, Image, Base
 from flask import Request
+from faker import Faker
 
 engine = create_engine('postgresql+psycopg2://admin:admin@postgres')
 Session = sessionmaker(bind=engine)
 session = Session()
+fake = Faker()
 
 
 def init_db():
     Base.metadata.drop_all(bind=engine)
     Base.metadata.create_all(bind=engine)
     user = User(
-        name='Andrey',
+        name='Andrey Sorokin',
         api_key='test',
     )
     user1 = User(
-        name='Artem',
+        name='Artem Sorokin',
         api_key='test1',
     )
     user2 = User(
-        name='Nina',
+        name='Nina Sorokina',
         api_key='test2',
     )
     tweet = Tweet(user_id=1, content='Test', attachments=[])
@@ -36,6 +38,20 @@ def init_db():
     user.followers.append(user1)
     session.add(tweet)
     session.commit()
+    for index in range(10):
+        user = User(name=fake.name(), api_key=fake.word())
+        session.add(user)
+        session.commit()
+    for _ in range(20):
+        tweet1 = Tweet(user_id=fake.random_int(min=1, max=13),
+                       content=fake.sentence(nb_words=10),
+                       attachments=[])
+        tweet2 = Tweet(user_id=fake.random_int(min=1, max=13),
+                       content=fake.sentence(nb_words=10),
+                       attachments=[])
+        session.add(tweet1)
+        session.add(tweet2)
+        session.commit()
 
 
 def get_user_by_id(id: str) -> User:
