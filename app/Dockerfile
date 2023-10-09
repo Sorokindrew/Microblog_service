@@ -2,6 +2,8 @@ FROM python:3.7
 RUN apt-get update && apt-get install -y python3-dev supervisor nginx \
     && rm -rf /var/lib/apt/lists/*
 
+ENV DB_URL=postgres
+
 COPY requirements.txt /app/
 RUN pip install --upgrade pip
 RUN pip install -r /app/requirements.txt

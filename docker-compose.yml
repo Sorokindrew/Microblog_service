@@ -1,5 +1,15 @@
 version: '3.2'
 services:
+  tests:
+    build:
+      context: ./
+      dockerfile: ./app/tests/Dockerfile
+    depends_on:
+      postgres_test:
+        condition: service_healthy
+    networks:
+      - my
+
   app:
     build:
       context: app
@@ -11,6 +21,23 @@ services:
       - ./logs/:/app/logs/
     depends_on:
       - postgres
+    networks:
+      - my
+
+  postgres_test:
+    image: postgres
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=admin
+    healthcheck:
+      test: /usr/bin/pg_isready
+      interval: 5s
+      timeout: 10s
+      retries: 2
+    ports:
+      - '6000:5432'
+    networks:
+      - my
 
   postgres:
     image: postgres
@@ -21,3 +48,9 @@ services:
       - '5432:5432'
     volumes:
       - ./db/:/var/lib/postgresql/data
+    networks:
+      - my
+
+networks:
+  my:
+    driver: bridge

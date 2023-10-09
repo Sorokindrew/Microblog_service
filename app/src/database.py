@@ -1,15 +1,17 @@
 import json
+import os
 from typing import List
 
 import flask
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base
 from models import User, Tweet, Like, Image, Base
 from flask import Request
 from faker import Faker
 
-engine = create_engine('postgresql+psycopg2://admin:admin@postgres')
+
+engine = create_engine(
+    f'postgresql+psycopg2://admin:admin@{os.environ["DB_URL"]}')
 Session = sessionmaker(bind=engine)
 session = Session()
 fake = Faker()
