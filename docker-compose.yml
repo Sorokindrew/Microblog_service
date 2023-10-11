@@ -30,7 +30,7 @@ services:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=admin
     healthcheck:
-      test: /usr/bin/pg_isready
+      test: ["CMD", "/usr/bin/pg_isready", "-U", "admin"]
       interval: 5s
       timeout: 10s
       retries: 2

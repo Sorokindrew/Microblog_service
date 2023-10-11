@@ -15,4 +15,3 @@ COPY ./pytest.ini /app/
 WORKDIR /app/
 
 CMD ["pytest", "-v", "-s", "tests"]
-#CMD ["ls", "-a"]
